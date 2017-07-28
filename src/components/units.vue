@@ -8,17 +8,13 @@
 		</div>
 		<a id="importShow" v-on:click='overlayShow=true'>Import from hex</a>
 		<a id='save' v-on:click='saveAll()'>Save all Units</a>
-		<div id="overlay" v-show='overlayShow'>
-			<span id="x" v-on:click='overlayShow=false'>X</span>
-			<p>paste your character data into the box. Little validation happens so if you input screwy data it will break the app</p>
-			<textarea id="importIn"></textarea>
-			<button id="import" v-on:click='importCharacter()'>Import character</button>
-		</div>
+		<inject v-show='overlayShow'></inject>
   </div>
 </template>
 
 <script>
 import unit from './unit.vue'
+import Inject from './inject.vue'
 import {Unit} from '../assets/js/unit.js'
 import * as UnitReader from '../assets/js/unitReader.js'
 import * as Data from '../assets/js/data.js'
@@ -26,7 +22,8 @@ import {EventBus} from '../assets/js/eventBus.js';
 
 export default {
 	components: {
-		'unit': unit
+		'unit': unit,
+		'inject': Inject
 	},
 	data () {
 		return {
@@ -41,21 +38,31 @@ export default {
 			this.units = Data.file.units;
 			console.log(Data.file.units)
 		})
+		EventBus.$on('hideInjectOverlay', n => {
+			this.overlayShow = false
+		})
+		EventBus.$on('injectCharacter', n => {
+			this.importCharacter(n);
+		})
+		EventBus.$on('heyDeleteAunitWouldYa', n => {
+			
+		})
 	},
 	methods: {
 		setActive: function(i) {
 			this.active = i;
 		},
 		saveAll: function() {
-			EventBus.$emit('SaveAllUnits')
+			EventBus.$emit('SaveAllUnits');
 			for(var i = 0; i < this.units.length; i++) {
 				this.units[i].buildNewUnitBlock();
 			}
 			Data.file.units = this.units;
 		},
-		importCharacter: function() {
+		importCharacter: function(n) {
 			Data.file.unitNumber++;
-			Data.file.units.push(new Unit($('#importIn')[0].value.replace(/ /g, ''), Data.file.unitNumber));
+			Data.file.totalUnitID++;
+			Data.file.units.push(new Unit(n.replace(/ /g, ''), Data.file.totalUnitID));
 			this.overlayShow = false
 		}
 	}
@@ -92,43 +99,5 @@ export default {
 	#save
 		right: 16px
 		bottom: 64px
-	#overlay
-		height: 100vh
-		width: 100%
-		background-color: rgba(#000, 0.8)
-		position: absolute
-		top: 0
-		left: 0
-		z-index: 1000
-		display: flex
-		align-items: center
-		justify-content: center
-		flex-direction: column
-		p
-			padding: 16px
-			color: rgba(#fff,0.85)
-			width: 540px
-			text-align: center
-			line-height: 1.6em
-		button
-			padding: 8px 16px
-			background-color: #b29dc7
-			border-radius: 2px
-			color: #252830
-			z-index: 1
-			margin: 16px
-			cursor: pointer
-			text-decoration: none
-		textarea
-			padding: 8px
-			font-family: 'Roboto Mono', monospace
-			width: 540px
-			height: 360px
-		#x
-			position: absolute
-			top: 16px
-			right: 16px
-			color: rgba(#fff,0.85)
-			cursor: pointer
-			font-size: 24px
+
 </style>

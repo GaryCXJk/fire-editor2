@@ -12,7 +12,8 @@
 
 $(document).on("click", "#godBox", function() {
 	var checkboxes = $(this).parent().parent().find('input[name="skill"]');
-	checkboxes.prop('checked', $(this).is(':checked'));
+	console.log(checkboxes)
+		checkboxes.prop('checked', $(this).is(':checked'));
 });
 
 import * as Data from '../assets/js/data.js'

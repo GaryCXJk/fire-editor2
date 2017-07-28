@@ -20,8 +20,7 @@ export function readFileForUnits(){
 		} else {
 			blocks[i] = new Unit(characterBlock.substring(Data.file.indexes[i], characterBlock.length), i);
 		}
-		//blocks[i].setValues();
-
+		Data.file.totalUnitID = Data.file.unitNumber;
 	}
 	return blocks
 }

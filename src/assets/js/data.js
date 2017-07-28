@@ -86,6 +86,7 @@ export const Offsets = {
 export var file = {
 	str: null,
 	unitNumber: null,
+	totalUnitID: null,
 	units: [],
 	indexes: null,
 	items: ''

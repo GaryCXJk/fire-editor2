@@ -46,8 +46,12 @@
 			<skills v-bind:bin='unit.learnedSkills' v-bind:pos='unit.pos'></skills>
 		</div>
 		<div id="meta">
+			<h2>Misc.</h2>
+			<p>Deleting a unit can cause weirdness in the game. I do not recomend deleting a non-dlc logbook unit or the MU. If you can find definient paramiters for when the game screws up please tell me. It is mostly there in case you duplicate too many units</p>
 			<button id="duplicate" v-on:click='duplicateUnit()'>Duplicate Unit</button>
-
+			<button id="delete" v-on:click='deleteUnit()'>Delete Unit</button>
+			<h3>Character String (does not update automaticly)</h3>
+			<p id='charBlock'>{{unit.charBlock}}</p>
 		</div>
 	</div>
 </template>
@@ -90,15 +94,21 @@ export default {
 	methods: {
 		duplicateUnit: function() {
 			Data.file.unitNumber++;
-			Data.file.units.push(new Unit(this.unit.charBlock, Data.file.unitNumber));
+			Data.file.totalUnitID++;
+			Data.file.units.push(new Unit(this.unit.charBlock, Data.file.totalUnitID));
+		},
+		deleteUnit: function() {
+			Data.file.unitNumber--;
+			Data.file.totalUnitID++;
 
+			var index = Data.file.units.findIndex(unit => this.unit.pos == unit.pos);
+			console.log(index)
+			Data.file.units.splice(index, 1);
 		}
 	},
 	mounted () {
 		EventBus.$on('learnedSkill' + this.unit.pos, n => {
 			this.unit.learnedSkills = n;
-			console.log(this.unit.learnedSkills);
-			
 		}),
 		EventBus.$on('hp' + this.unit.pos, n => {
 			this.unit.stats.hp = n;
@@ -196,4 +206,9 @@ export default {
 		background-color: #b29dc7
 		cursor: pointer
 		border-radius: 2px
+	#charBlock
+		width: 540px
+		word-wrap: break-word
+		line-height: 1.6
+		padding: 8px
 </style>
