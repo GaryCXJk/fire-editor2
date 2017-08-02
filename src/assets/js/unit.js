@@ -7,7 +7,7 @@ class Unit {
 		this.pos = p;
 		this.charID = this.charBlock.substr(2,2);
 		this.class = this.charBlock.substr(6,2);
-
+		this.alive = !this.isDead();
 		this.activeSkills = {'0':null,'1':null,'2':null,'3':null,'4':null}
 		this.activeSkills[0] = this.charBlock.substr(102, 2);
 		this.activeSkills[1] = this.charBlock.substr(106, 2);
@@ -28,7 +28,7 @@ class Unit {
 		this.stats.mov = this.charBlock.substr(42,2);
 		this.stats.lvl = this.charBlock.substr(36,2);
 
-		this.weaponExp = {sword: null,spear: null,axe: null,bow: null,tomb: null,stave: null}
+		this.weaponExp = {sword: null, spear: null, axe: null, bow: null, tomb: null, stave: null}
 		this.weaponExp.sword = this.charBlock.substr(122,2);
 		this.weaponExp.spear = this.charBlock.substr(124,2);
 		this.weaponExp.axe = this.charBlock.substr(126,2);
@@ -44,18 +44,31 @@ class Unit {
 		} else {
 			this.name = Data.Hex.names[Data.Util.hextodec(this.charID)]
 		}
-		if(this.isChild() || (this.isAvatar() && !this.isDLC())) {
-			if(this.isChild()) {
-				this.hairColor = "#" + this.charBlock.substr(this.charBlock.indexOf(Data.Offsets.fBlockStart) + 90 + Data.Offsets.fBlockStart.length, 6);
-			} else if(this.isAvatar()) {
-				var offset = this.charBlock.indexOf(Data.Offsets.fBlock) + Data.Offsets.fBlock.length + 38 + 48;
-				this.hairColor = "#" + this.charBlock.substr(offset - 68, 6);
+		if(this.isChild()) {
+			this.hairColor = "#" + this.charBlock.substr(this.charBlock.indexOf(Data.Offsets.fBlockStart) + 90 + Data.Offsets.fBlockStart.length, 6);
+
+			var parentIndex = this.charBlock.substring(this.charBlock.lastIndexOf('ffffffffffff') + 12)
+			this.father = this.charBlock.substr(this.charBlock.indexOf('ff00010101', parentIndex) + 10 + 2, 2)
+			if(this.charBlock.lastIndexOf('ff00000101', parentIndex) + 10 + 2, 2 != -1) {
+				this.mother = this.charBlock.substr(this.charBlock.lastIndexOf('ff00000101', parentIndex) + 10 + 2, 2);
+			} else if(this.charBlock.lastIndexOf('ff00001001', parentIndex) + 10 + 2, 2 != -1) {
+				this.mother = this.charBlock.substr(this.charBlock.lastIndexOf('ff00001001', parentIndex) + 10 + 2, 2);
+			} else {
+				alert('something has gone terribly wrong. \nPlease pm the creator with a copy of the save file. \nThe file will still be loaded however I do not recomend editing this unit: ' + this.name)
 			}
+
+
+		} else if(this.isAvatar() || this.charID == '34') {
+			var offset = this.charBlock.indexOf(Data.Offsets.fBlock) + Data.Offsets.fBlock.length + 38 + 48;
+			this.hairColor = "#" + this.charBlock.substr(offset - 68, 6);
+		} else {
+			this.hairColor = '#' + this.charBlock.substr(this.charBlock.length - 12, 6)
 		}
 	}
 	isAvatar() {
-		if(this.charID === '00' || this.charID === '01' || this.charID === '02') return true;
-		else return false
+		if(this.charID === '00' || this.charID === '01' || this.charID === '02'){
+			return true;
+		} else return false;
 	}
 	isDLC() {
 		var offset = this.charBlock.indexOf(Data.Offsets.fBlock) + Data.Offsets.fBlock.length + 38 + 48;
@@ -64,12 +77,20 @@ class Unit {
 		} else return false;
 	}
 	isChild() {
-		if(Data.Util.hextodec(this.charID) >= 32 && Data.Util.hextodec(this.charID) <= 44){
+		if(Data.Util.hextodec(this.charID) >= 32 && Data.Util.hextodec(this.charID) <= 44 || this.charID == '1a'){
 			return true;
 		} else return false;
 	}
+	isDead() {
+		var sub = this.charBlock.substring(102);
+		var index = sub.indexOf('ffff');
+		if(sub.substr(index - 8, 2) == '08') {
+			return true;
+		} else return false;
+	}
+
 	replace(b, r) {
-		this.charBlock = this.charBlock.substring(0, b) + r + this.charBlock.substring(b + r.length, this.charBlock.length);
+		this.charBlock = this.charBlock.substring(0, b) + r + this.charBlock.substring(b + r.length);
 	}
 	buildNewUnitBlock() {
 		this.replace(20, this.stats.hp);
@@ -99,7 +120,35 @@ class Unit {
 
 		this.replace(6, this.class);
 
-		this.replace(this.charBlock.indexOf('ffff0000000002') + 46, Data.Util.bintohex(Data.Util.reversebin(this.learnedSkills)))
+		this.replace(this.charBlock.indexOf('ffff0000000002') + 46, Data.Util.bintohex(Data.Util.reversebin(this.learnedSkills)));
+
+		if(this.isChild()) {
+			this.replace(this.charBlock.indexOf(Data.Offsets.fBlockStart) + 90 + Data.Offsets.fBlockStart.length, this.hairColor.replace('#', ''));
+
+			var parentIndex = this.charBlock.substring(this.charBlock.lastIndexOf('ffffffffffff') + 12)
+			this.replace(this.charBlock.indexOf('ff00010101', parentIndex) + 10 + 2 ,this.father);
+
+			if(this.charBlock.lastIndexOf('ff00000101', parentIndex) + 10 + 2, 2 != -1) {
+				this.replace(this.charBlock.lastIndexOf('ff00000101', parentIndex) + 10 + 2, this.mother)
+			} else if(this.charBlock.lastIndexOf('ff00001001', parentIndex) + 10 + 2, 2 != -1) {
+				this.replace(this.charBlock.lastIndexOf('ff00001001', parentIndex) + 10 + 2, this.mother)
+			}
+
+		} else if(this.isAvatar() || this.charID == '34') {
+			var offset = this.charBlock.indexOf(Data.Offsets.fBlock) + Data.Offsets.fBlock.length + 38 + 48;
+			this.replace(offset - 68, this.hairColor.replace('#', ''));
+
+		} else {
+			this.hairColor = '#' + this.charBlock.substr(this.charBlock.length - 12, 6)
+		}
+		/*var index = this.charBlock.substring(52).indexOf('ffff') - 8 + 52;
+		if(this.alive) {
+			this.replace(index, '00');
+		} else {
+			this.replace(index, '08000000');
+		}*/
+
+
 	}
 }
 export {Unit}

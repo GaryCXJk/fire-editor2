@@ -1,7 +1,8 @@
 <template lang="html">
 	<div id="overlay">
 		<span id="x" v-on:click='hide()'>X</span>
-		<p>paste your character data into the box. Little validation happens so if you input screwy data it will break the app</p>
+		<p>paste your character data into the box. Little validation happens so if you input screwy data it will break the app. A bunch of preloads can be found <a href="https://gbatemp.net/attachments/base-character-blocks-zip.94091/">here</a> courtesy of <a href="https://gbatemp.net/members/cercity.380501/">cercity</a></p>
+		<p>This feature doesn't tend to work if you have any fallen units, it can but it is very ify</p>
 		<textarea id="importIn"></textarea>
 		<button id="import" v-on:click='injectUnit()'>Import character</button>
 	</div>
@@ -18,15 +19,16 @@ export default {
 		injectUnit: function() {
 			var n = 0;
 			for(var i = 0; i < Data.file.units.length; i++) {
-				if(Data.file.units[i].charID == '02'){
-					n++;
+				if(Data.file.units[i].charID == '02') {
+					n++
 				}
 			}
-			if(n > 20 && $('#importIn')[0].value.substr(2,2) == '02') {
-				alert('you have added 20 DLC units thus adding this character will chrash the game.');
-			} else {
-				EventBus.$emit('injectCharacter', $('#importIn')[0].value)
+			if(n > 20 && $('#importIn')[0].value.substring(2, 2) == '02') {
+				alert('you already have 20 logbook units adding this one can screw your game. \nIf you have more than 20 DLC units the game will crash but if this is an MU you are probably fine')
 			}
+
+			EventBus.$emit('injectCharacter', $('#importIn')[0].value);
+
 		}
 	}
 }
@@ -48,9 +50,11 @@ export default {
 		p
 			padding: 16px
 			color: rgba(#fff,0.85)
-			width: 540px
+			width: 720px
 			text-align: center
 			line-height: 1.6em
+		a
+			color: rgba(#fff,0.85)
 		button
 			padding: 8px 16px
 			background-color: #b29dc7
@@ -64,7 +68,7 @@ export default {
 			padding: 8px
 			font-family: 'Roboto Mono', monospace
 			width: 540px
-			height: 360px
+			height: 240px
 		#x
 			position: absolute
 			top: 16px

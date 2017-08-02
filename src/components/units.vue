@@ -1,7 +1,7 @@
 <template lang="html">
   <div id="unitWrapper">
 		<ul>
-			<li v-for='unit in units' v-show='unit' v-on:click='setActive(unit.pos)'>{{unit.name}}</li>
+			<li v-for='unit in units' v-show='unit' v-on:click='setActive(unit.pos)'>{{unit.name}} <p v-if='!unit.alive' id='fallen'>Fallen</p></li>
 		</ul>
 		<div id="unitSpace">
 			<unit v-for='unit in units' v-bind:active='(active == unit.pos)' v-bind:unit='unit' :key="unit.id"></unit>
@@ -45,7 +45,7 @@ export default {
 			this.importCharacter(n);
 		})
 		EventBus.$on('heyDeleteAunitWouldYa', n => {
-			
+
 		})
 	},
 	methods: {
@@ -60,7 +60,7 @@ export default {
 			Data.file.units = this.units;
 		},
 		importCharacter: function(n) {
-			Data.file.unitNumber++;
+			Data.file.unitNumberAlive++;
 			Data.file.totalUnitID++;
 			Data.file.units.push(new Unit(n.replace(/ /g, ''), Data.file.totalUnitID));
 			this.overlayShow = false
@@ -86,6 +86,9 @@ export default {
 			color: rgba(#fff, 0.85)
 			&:hover
 				background-color: rgba(#fff,0.2)
+			#fallen
+				color: #e06c75
+				display: inline-block
 	#save, #importShow
 		padding: 8px 16px
 		background-color: #b29dc7

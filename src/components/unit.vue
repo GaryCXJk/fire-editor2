@@ -37,20 +37,32 @@
 			<inputSelect v-bind:options='skills' v-bind:pos='unit.pos' v-bind:active='unit.activeSkills[3]' label='Skill 4'></inputSelect>
 			<inputSelect v-bind:options='skills' v-bind:pos='unit.pos' v-bind:active='unit.activeSkills[4]' label='Skill 5'></inputSelect>
 		</div>
-		<!-- <div id="hairColor" v-show='unit.hairColor'>
+		<div id="hairColor" v-show='unit.hairColor'>
 			<h2>Hair Color</h2>
-			<inputColor v-bind:color='unit.hairColor' v-bind:pos='unit.pos' label='hair color:'></inputColor>
-		</div> -->
+			<inputColor v-bind:hex='unit.hairColor' v-bind:pos='unit.pos'></inputColor>
+
+		</div>
 		<div id="learnedSkils">
 			<h2>learned Skills (Don't add 'None')</h2>
 			<skills v-bind:bin='unit.learnedSkills' v-bind:pos='unit.pos'></skills>
 		</div>
+		<div id="parent" v-if='unit.isChild()'>
+			<h2>Parents</h2>
+			<p>I do not recomend adding logbook units or MU's if you have multiples of them</p>
+			<inputSelect v-bind:options='names' v-bind:pos='unit.pos' v-bind:active='unit.mother' label='Mother'></inputSelect>
+			<inputSelect v-bind:options='names' v-bind:pos='unit.pos' v-bind:active='unit.father' label='Father'></inputSelect>
+
+		</div>
 		<div id="meta">
 			<h2>Misc.</h2>
+			<p>These features don't tend to work if you have any fallen units it can but it is very ify</p>
 			<p>Deleting a unit can cause weirdness in the game. I do not recomend deleting a non-dlc logbook unit or the MU. If you can find definient paramiters for when the game screws up please tell me. It is mostly there in case you duplicate too many units</p>
 			<button id="duplicate" v-on:click='duplicateUnit()'>Duplicate Unit</button>
 			<button id="delete" v-on:click='deleteUnit()'>Delete Unit</button>
+			<!--<button id="kill" v-if='unit.alive' v-on:click='killUnit()'>Kill unit</button>
+			<button id="revive" v-else v-on:click='reviveUnit()'>Revive unit</button>-->
 			<h3>Character String (does not update automaticly)</h3>
+
 			<p id='charBlock'>{{unit.charBlock}}</p>
 		</div>
 	</div>
@@ -71,14 +83,15 @@ export default {
 		'inputNum': InputNum,
 		'inputSelect': InputSelect,
 		'inputColor': InputColor,
+
 		'skills': Skills,
 
 	},
 	data () {
 		return {
 			skills: Data.Hex.skills,
-			classes: Data.Hex.classes
-
+			classes: Data.Hex.classes,
+			names: Data.Hex.names,
 		}
 	},
 	props: {
@@ -93,17 +106,22 @@ export default {
 	},
 	methods: {
 		duplicateUnit: function() {
-			Data.file.unitNumber++;
+			Data.file.unitNumberAlive++;
 			Data.file.totalUnitID++;
 			Data.file.units.push(new Unit(this.unit.charBlock, Data.file.totalUnitID));
 		},
 		deleteUnit: function() {
-			Data.file.unitNumber--;
+			Data.file.unitNumberAlive--;
 			Data.file.totalUnitID++;
 
 			var index = Data.file.units.findIndex(unit => this.unit.pos == unit.pos);
-			console.log(index)
 			Data.file.units.splice(index, 1);
+		},
+		reviveUnit: function() {
+			this.unit.alive = true;
+			Data.file.unitNumberAlive++;
+			Data.file.unitNumberDead--;
+			console.log(Data.file.unitNumberDead + ', ' + Data.file.unitNumberAlive)
 		}
 	},
 	mounted () {
@@ -183,6 +201,15 @@ export default {
 		EventBus.$on('Class' + this.unit.pos, n => {
 			this.unit.class = n;
 		})
+		EventBus.$on('Father' + this.unit.pos, n => {
+			this.unit.father = n;
+		})
+		EventBus.$on('Mother' + this.unit.pos, n => {
+			this.unit.mother = n;
+		})
+		EventBus.$on('hairColor' + this.unit.pos, n => {
+			this.unit.hairColor = n;
+		})
 	}
 }
 </script>
@@ -190,6 +217,8 @@ export default {
 <style scoped lang="sass">
 	h1, h2, h3, h4, h5, h6, p
 		color: rgba(white, 0.85)
+	p
+		padding: 8px
 	#unit
 		padding: 16px
 		overflow-y: scroll
@@ -211,4 +240,5 @@ export default {
 		word-wrap: break-word
 		line-height: 1.6
 		padding: 8px
+		font-family: monospace
 </style>
